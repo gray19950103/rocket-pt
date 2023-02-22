@@ -1,10 +1,9 @@
-package com.rocketpt.server.dto;
+package com.rocketpt.server.torrent.domain.valobj;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.util.Date;
 import java.util.Map;
@@ -17,8 +16,7 @@ import lombok.Data;
  * @about <link href='http://zzyitj.xyz/'/>
  */
 @Data
-@TableName(value = "t_torrent")
-public class TorrentDto {
+public class TorrentValObj {
 
     @TableId(type = IdType.AUTO)
     private Long id;

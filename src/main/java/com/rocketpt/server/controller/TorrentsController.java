@@ -7,9 +7,10 @@ import com.rocketpt.server.common.base.CustomPage;
 import com.rocketpt.server.common.base.I18nMessage;
 import com.rocketpt.server.common.base.Res;
 import com.rocketpt.server.common.exception.RocketPTException;
-import com.rocketpt.server.dto.entity.TorrentsEntity;
-import com.rocketpt.server.infra.service.TorrentManager;
 import com.rocketpt.server.service.TorrentsService;
+import com.rocketpt.server.torrent.domain.context.TorrentBundleContext;
+import com.rocketpt.server.torrent.domain.context.TorrentContext;
+import com.rocketpt.server.torrent.domain.entity.Torrent;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.Positive;
@@ -23,7 +24,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.Optional;
 
 
 /**
@@ -37,16 +37,14 @@ import java.util.Optional;
 @RequestMapping("/torrent")
 @Validated
 public class TorrentsController {
-
     private final TorrentsService torrentsService;
-    private final TorrentManager torrentManager;
 
     /**
      * 列表
      */
     @PostMapping("/list")
     public Res list(@RequestBody CustomPage page) {
-        Page<TorrentsEntity> entityPage = new Page<>(page.getCurrent(), page.getSize());
+        Page<Torrent> entityPage = new Page<>(page.getCurrent(), page.getSize());
         entityPage.addOrder(page.getOrders());
         return Res.ok(torrentsService.page(entityPage));
     }
@@ -56,7 +54,7 @@ public class TorrentsController {
      */
     @PostMapping("/info/{id}")
     public Res info(@PathVariable("id") Integer id) {
-        TorrentsEntity torrents = torrentsService.getById(id);
+        Torrent torrents = torrentsService.getById(id);
         return Res.ok(torrents);
     }
 
@@ -64,7 +62,7 @@ public class TorrentsController {
      * 保存
      */
     @PostMapping("/save")
-    public Res save(@RequestBody TorrentsEntity entity) {
+    public Res save(@RequestBody Torrent entity) {
         torrentsService.save(entity);
 
         return Res.ok();
@@ -74,7 +72,7 @@ public class TorrentsController {
      * 保存/修改
      */
     @PostMapping("/saveOrUpdate")
-    public Res saveOrUpdate(@RequestBody TorrentsEntity entity) {
+    public Res saveOrUpdate(@RequestBody Torrent entity) {
         if (Objects.isNull(entity.getId())) {
             torrentsService.save(entity);
         } else {
@@ -88,7 +86,7 @@ public class TorrentsController {
      * 修改
      */
     @PostMapping("/update")
-    public Res update(@RequestBody TorrentsEntity torrents) {
+    public Res update(@RequestBody Torrent torrents) {
         torrentsService.updateById(torrents);
 
         return Res.ok();
@@ -108,32 +106,32 @@ public class TorrentsController {
      * 上传
      */
     @PostMapping("/upload")
-    public Res upload(@RequestPart("file") MultipartFile multipartFile, @RequestPart("entity") TorrentsEntity torrentsEntity) {
+    public Res upload(@RequestPart("file") MultipartFile multipartFile, @RequestPart("torrentContext") TorrentContext torrentContext) {
         try {
             if (multipartFile.isEmpty())
                 throw new RocketPTException(CommonResultStatus.PARAM_ERROR, I18nMessage.getMessage("torrent_empty"));
             byte[] bytes = multipartFile.getBytes();
-            return torrentsService.upload(bytes, torrentsEntity);
+            return torrentsService.upload(bytes, torrentContext);
         } catch (IOException e) {
             return Res.failure();
         }
     }
 
+    /**
+     * 下载
+     */
     @GetMapping("/download")
-    public void download(@RequestParam("id") @Positive Integer id, HttpServletResponse response) throws IOException {
-        Optional<TorrentsEntity> entityOptional = Optional.ofNullable(torrentsService.getById(id));
-        if (entityOptional.isEmpty())
-            throw new RocketPTException(CommonResultStatus.PARAM_ERROR, I18nMessage.getMessage("torrent_not_exists"));
-        byte[] fetch = torrentManager.fetch(id);
-        String filename = entityOptional.get().getFilename();
+    public void download(@RequestParam("id") @Positive Long id, HttpServletResponse response) throws IOException {
+        TorrentBundleContext torrentBundleContext = torrentsService.download(id);
+        String filename = torrentBundleContext.getTorrentContext().getFilename();
+        byte[] torrentBytes = torrentBundleContext.getTorrentBytes();
         filename = URLEncoder.encode(filename, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.setContentLength(fetch.length);
+        response.setContentLength(torrentBytes.length);
         response.setContentType("application/x-bittorrent");
         response.setHeader("Content-Disposition", "attachment;filename=" + filename);
         if (response.isCommitted()) return;
-        response.getOutputStream().write(fetch);
+        response.getOutputStream().write(torrentBytes);
         response.getOutputStream().flush();
     }
-
 }

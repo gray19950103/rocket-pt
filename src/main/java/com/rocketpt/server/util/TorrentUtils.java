@@ -2,7 +2,7 @@ package com.rocketpt.server.util;
 
 import com.dampcake.bencode.Bencode;
 import com.dampcake.bencode.Type;
-import com.rocketpt.server.dto.TorrentDto;
+import com.rocketpt.server.torrent.domain.valobj.TorrentValObj;
 import com.rocketpt.server.dto.vo.TorrentFileVo;
 
 import org.springframework.boot.system.ApplicationHome;
@@ -33,7 +33,7 @@ public class TorrentUtils {
      * @return
      * @throws NoSuchAlgorithmException
      */
-    public static TorrentDto getTorrentHash(byte[] data) throws NoSuchAlgorithmException {
+    public static TorrentValObj getTorrentHash(byte[] data) throws NoSuchAlgorithmException {
         Bencode bencode = new Bencode(true);
         Map<String, Object> torrentDataMap = bencode.decode(data, Type.DICTIONARY);
         Map<String, Object> infoMap = (Map<String, Object>) torrentDataMap.get("info");
@@ -57,7 +57,7 @@ public class TorrentUtils {
             len = (long) infoMap.get("length");
             count = 1;
         }
-        TorrentDto torrent = new TorrentDto();
+        TorrentValObj torrent = new TorrentValObj();
         torrent.setUkInfoHash(hash(bencode.encode(infoMap)));
         torrent.setTorrentSize(len);
         torrent.setTorrentCount(count);

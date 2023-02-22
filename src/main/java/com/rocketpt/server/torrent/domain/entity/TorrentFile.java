@@ -1,9 +1,11 @@
-package com.rocketpt.server.dto.entity;
+package com.rocketpt.server.torrent.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.rocketpt.server.dto.entity.EntityBase;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
  * @author yzr
  */
 @Data
+@AllArgsConstructor
 @NoArgsConstructor
 @TableName("torrent_file")
 public class TorrentFile extends EntityBase {
@@ -22,24 +25,18 @@ public class TorrentFile extends EntityBase {
      * 对应种子id
      */
     @TableField(insertStrategy = FieldStrategy.NOT_EMPTY, updateStrategy = FieldStrategy.NOT_EMPTY)
-    private Integer torrentId;
+    private Long torrentId;
 
     /**
      * 二进制种子文件
      */
     @TableField(insertStrategy = FieldStrategy.NOT_EMPTY, updateStrategy = FieldStrategy.NOT_EMPTY)
-    private byte[] file;
+    private byte[] torrentBytes;
 
     /**
      * 种子协议版本
      */
     private IdentityType identityType;
-
-    public TorrentFile(Integer torrentId, byte[] file, IdentityType identityType) {
-        this.torrentId = torrentId;
-        this.file = file;
-        this.identityType = identityType;
-    }
 
     @RequiredArgsConstructor
     public enum IdentityType {

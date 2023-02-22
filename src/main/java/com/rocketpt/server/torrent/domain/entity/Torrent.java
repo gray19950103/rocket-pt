@@ -1,4 +1,4 @@
-package com.rocketpt.server.dto.entity;
+package com.rocketpt.server.torrent.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.util.Date;
 
+import com.rocketpt.server.dto.entity.EntityBase;
+import com.rocketpt.server.torrent.domain.enums.Category;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -15,14 +17,8 @@ import lombok.RequiredArgsConstructor;
  * @date 2023-02-09 14:43:20
  */
 @Data
-@TableName("torrents")
-public class TorrentsEntity {
-
-    /**
-     *
-     */
-    @TableId
-    private Integer id;
+@TableName("torrent")
+public class Torrent extends EntityBase {
     /**
      * 种子哈希
      */
@@ -32,13 +28,17 @@ public class TorrentsEntity {
      */
     private String name;
     /**
+     * 副标题
+     */
+    private String subtitle;
+    /**
      * 文件名
      */
     private String filename;
     /**
-     * 存储名称
+     * IMDb链接
      */
-    private String saveAs;
+    private String imdbLink;
     /**
      * 封面
      */
@@ -46,51 +46,47 @@ public class TorrentsEntity {
     /**
      * 描述
      */
-    private String descr;
-    /**
-     * 简介副标题
-     */
-    private String smallDescr;
-    /**
-     * 原始描述
-     */
-    private String oriDescr;
+    private String description;
     /**
      * 类别
      */
-    private Integer category;
+    private Category category;
     /**
-     * 来源
-     */
-    private Integer source;
-    /**
-     *
+     * 来源媒介
      */
     private Integer medium;
     /**
-     *
+     * 视频编码
      */
-    private Integer codec;
+    private Integer videoCodec;
     /**
-     *
+     * 音频编码
      */
-    private Integer standard;
+    private Integer audioCodec;
     /**
-     *
+     * 分辨率
+     */
+    private Integer resolution;
+    /**
+     * 地区
      */
     private Integer processing;
     /**
-     *
+     * 制作组
      */
     private Integer team;
     /**
-     *
+     * 匿名
      */
-    private Integer audiocodec;
+    private Boolean anonymous;
     /**
-     * 大小
+     * 文件大小
      */
-    private Long size;
+    private Long fileSize;
+    /**
+     * 文件数量
+     */
+    private Integer fileCount;
     /**
      * 添加日期
      */
@@ -99,10 +95,6 @@ public class TorrentsEntity {
      * 类型
      */
     private Type type;
-    /**
-     * 文件数量
-     */
-    private Integer numfiles;
     /**
      * 评论数
      */
@@ -142,7 +134,7 @@ public class TorrentsEntity {
     /**
      * 拥有者
      */
-    private Integer owner;
+    private Long owner;
     /**
      *
      */
@@ -155,10 +147,6 @@ public class TorrentsEntity {
      * 促销截止日期
      */
     private Date promotionUntil;
-    /**
-     * 匿名
-     */
-    private String anonymous;
     /**
      *
      */

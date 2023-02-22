@@ -1,27 +1,18 @@
 package com.rocketpt.server.service;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.rocketpt.server.common.CommonResultStatus;
-import com.rocketpt.server.common.Constants;
-import com.rocketpt.server.common.SessionItemHolder;
 import com.rocketpt.server.common.base.Res;
 import com.rocketpt.server.common.exception.RocketPTException;
-import com.rocketpt.server.dao.TorrentsDao;
-import com.rocketpt.server.dto.TorrentDto;
-import com.rocketpt.server.dto.entity.TorrentFile;
-import com.rocketpt.server.dto.entity.TorrentsEntity;
-import com.rocketpt.server.dto.sys.UserinfoDTO;
-import com.rocketpt.server.infra.service.TorrentManager;
+import com.rocketpt.server.dao.TorrentMapper;
+import com.rocketpt.server.torrent.domain.aggregate.TorrentBundle;
+import com.rocketpt.server.torrent.domain.context.TorrentBundleContext;
+import com.rocketpt.server.torrent.domain.context.TorrentContext;
+import com.rocketpt.server.torrent.domain.entity.Torrent;
+import com.rocketpt.server.torrent.repo.TorrentRepository;
 import jakarta.annotation.Resource;
-import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.Map;
 
 /**
  * @author plexpt
@@ -29,37 +20,34 @@ import java.util.Map;
  * @date 2023-01-28 00:01:53
  */
 @Service
-public class TorrentsService extends ServiceImpl<TorrentsDao, TorrentsEntity> {
-
+public class TorrentsService extends ServiceImpl<TorrentMapper, Torrent> {
     @Resource
-    private TorrentManager torrentManager;
+    private TorrentRepository torrentRepository;
 
-    @SneakyThrows
-    @Transactional(rollbackFor = SQLException.class)
-    public Res upload(byte[] bytes, TorrentsEntity torrentsEntity) {
-        byte[] transformedBytes = torrentManager.transform(bytes);
-        byte[] infoHash = torrentManager.infoHash(transformedBytes);
-        if (count(Wrappers.<TorrentsEntity>lambdaQuery().eq(TorrentsEntity::getInfoHash, infoHash)) != 0)
-            throw new RocketPTException(CommonResultStatus.PARAM_ERROR, "该种子站内已存在。");
-        TorrentDto dto = torrentManager.parse(bytes);
-        Map<String, Object> parsedMap = dto.getDict();
-        Map<String, Object> infoParsedMap = (Map<String, Object>) parsedMap.get("info");
-        TorrentsEntity entity = new TorrentsEntity();
-        BeanUtil.copyProperties(torrentsEntity, entity, "id","infoHash","added","visible","approvalStatus");
-        entity.setInfoHash(infoHash);
-        String name = (String) infoParsedMap.get("name");
-        entity.setName(name);
-        entity.setFilename(Constants.Source.PREFIX + name + ".torrent");
-        entity.setSize(dto.getTorrentSize());
-        entity.setNumfiles(dto.getTorrentCount().intValue());
-        entity.setType(dto.getTorrentCount() > 1 ? TorrentsEntity.Type.multi : TorrentsEntity.Type.single);
-        UserinfoDTO userinfoDTO = (UserinfoDTO) SessionItemHolder.getItem(Constants.SESSION_CURRENT_USER);
-        entity.setOwner(userinfoDTO.userId().intValue());
-        entity.setAdded(new Date());
-        save(entity);
-        torrentManager.preserve(entity.getId(), transformedBytes, TorrentFile.IdentityType.V1);
-        //todo get torrent protocol version
+    public Res upload(byte[] bytes, TorrentContext torrentContext) {
+        TorrentBundle torrentBundle = new TorrentBundle();
+        TorrentBundleContext torrentBundleContext = new TorrentBundleContext();
+        torrentBundleContext.setTorrentContext(torrentContext);
+        torrentBundleContext.setTorrentBytes(bytes);
+        torrentBundle.transform(torrentBundleContext);
+        byte[] infoHash = torrentBundle.infoHash();
+        checkExistence(infoHash);
+        torrentBundleContext.setInfoHash(infoHash);
+        torrentBundle.parse(torrentBundleContext);
+        torrentRepository.save(torrentBundleContext, torrentBundle.getTorrentFile());
         return Res.ok();
+    }
+
+    public TorrentBundleContext download(Long torrentId) {
+        TorrentBundleContext torrentBundleContext = torrentRepository.fetch(torrentId);
+        TorrentBundle torrentBundle = new TorrentBundle();
+        torrentBundle.brand(torrentBundleContext);
+        return torrentBundleContext;
+    }
+
+    private void checkExistence(byte[] bytes) {
+        if (count(Wrappers.<Torrent>lambdaQuery().eq(Torrent::getInfoHash, bytes)) != 0)
+            throw new RocketPTException(CommonResultStatus.PARAM_ERROR, "该种子站内已存在。");
     }
 }
 
