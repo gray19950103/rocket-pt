@@ -1,4 +1,4 @@
-package com.rocketpt.server.dao;
+package com.rocketpt.server.torrent.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.rocketpt.server.torrent.domain.entity.Torrent;

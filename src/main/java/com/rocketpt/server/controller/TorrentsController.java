@@ -7,7 +7,7 @@ import com.rocketpt.server.common.base.CustomPage;
 import com.rocketpt.server.common.base.I18nMessage;
 import com.rocketpt.server.common.base.Res;
 import com.rocketpt.server.common.exception.RocketPTException;
-import com.rocketpt.server.service.TorrentsService;
+import com.rocketpt.server.torrent.service.TorrentsService;
 import com.rocketpt.server.torrent.domain.context.TorrentBundleContext;
 import com.rocketpt.server.torrent.domain.context.TorrentContext;
 import com.rocketpt.server.torrent.domain.entity.Torrent;

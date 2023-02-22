@@ -1,11 +1,11 @@
-package com.rocketpt.server.service;
+package com.rocketpt.server.torrent.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.rocketpt.server.common.CommonResultStatus;
 import com.rocketpt.server.common.base.Res;
 import com.rocketpt.server.common.exception.RocketPTException;
-import com.rocketpt.server.dao.TorrentMapper;
+import com.rocketpt.server.torrent.mapper.TorrentMapper;
 import com.rocketpt.server.torrent.domain.aggregate.TorrentBundle;
 import com.rocketpt.server.torrent.domain.context.TorrentBundleContext;
 import com.rocketpt.server.torrent.domain.context.TorrentContext;
